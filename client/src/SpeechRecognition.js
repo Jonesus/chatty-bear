@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 
-export function useSpeechRecognition({ onStart, onEnd, onResult }) {
+function useSpeechRecognition({ onStart, onEnd, onResult }) {
   const [listening, setListening] = useState(false);
 
   const speechRecognition = useMemo(() => {
@@ -29,11 +29,35 @@ export function useSpeechRecognition({ onStart, onEnd, onResult }) {
   return { speechRecognition, listening };
 }
 
+function speak(text) {
+  const utterance = new SpeechSynthesisUtterance(text);
+  speechSynthesis.speak(utterance);
+}
+
+async function getGptResponse(prompt) {
+  const response = await fetch("http://localhost:8080/api/openai", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ prompt: prompt }),
+  });
+  const data = await response.json();
+  return data.choices[0].text.trim();
+}
+
 export function SpeechRecognition() {
   const [lastTranscript, setLastTranscript] = useState("");
+  const [lastResponse, setLastResponse] = useState("");
 
   const { speechRecognition, listening } = useSpeechRecognition({
-    onResult: (result) => setLastTranscript(result),
+    onResult: async (result) => {
+      const trimmedResult = result.trim();
+      if (trimmedResult) {
+        setLastTranscript(trimmedResult);
+        const response = await getGptResponse(trimmedResult);
+        setLastResponse(response);
+        speak(response);
+      }
+    },
   });
 
   return (
@@ -45,6 +69,8 @@ export function SpeechRecognition() {
       </div>
       <div style={{ marginTop: "1rem" }}>Last transcript:</div>
       <div>{lastTranscript || "<none>"}</div>
+      <div style={{ marginTop: "1rem" }}>Last response:</div>
+      <div>{lastResponse || "<none>"}</div>
     </div>
   );
 }

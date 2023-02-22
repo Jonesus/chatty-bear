@@ -1,5 +1,6 @@
-const express = require("express")
-require('dotenv').config()
+const express = require("express");
+const cors = require("cors");
+require("dotenv").config();
 
 /*Initiate Express app*/
 const app = express();
@@ -8,6 +9,7 @@ const app = express();
 //Middleware appicable identically in all environments
 app.use(express.urlencoded({ extended: true })); //parses incoming requests with urlencoded payloads
 app.use(express.json()); //parses incoming request bodies and makes it available under the req.body property.
+app.use(cors());
 
 /*Define routes*/
 app.use("/api/openai", require("./api/openai"));
