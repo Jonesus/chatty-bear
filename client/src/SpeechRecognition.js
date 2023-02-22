@@ -30,8 +30,9 @@ function useSpeechRecognition({ onStart, onEnd, onResult }) {
 }
 
 function speak(text) {
+  window.speechSynthesis.cancel();
   const utterance = new SpeechSynthesisUtterance(text);
-  speechSynthesis.speak(utterance);
+  window.speechSynthesis.speak(utterance);
 }
 
 async function getGptResponse(prompt) {
