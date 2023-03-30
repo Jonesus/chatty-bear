@@ -9,7 +9,7 @@ function useSpeechRecognition({ onStart, onEnd, onResult }) {
         ? new window.webkitSpeechRecognition()
         : new window.SpeechRecognition();
 
-    sr.continuous = true;
+    sr.continuous = false;
     sr.onstart = () => {
       setListening(true);
       onStart?.();
@@ -62,16 +62,22 @@ export function SpeechRecognition() {
   });
 
   return (
-    <div style={{ marginTop: "4rem" }}>
-      <div>Currently {listening ? "listening" : "not listening"}.</div>
+    <div className="speech-recognition">
       <div>
-        <button onClick={() => speechRecognition.start()}>Start</button>
-        <button onClick={() => speechRecognition.stop()}>Stop</button>
+        { !listening && 
+          <button className="record-button" onClick={() => speechRecognition.start()}>Start</button>
+        }
+        { listening && 
+          <button className={`record-button ${listening ? "recording" : ""}`} onClick={() => speechRecognition.stop()}>Stop</button>
+        }
       </div>
-      <div style={{ marginTop: "1rem" }}>Last transcript:</div>
-      <div>{lastTranscript || "<none>"}</div>
-      <div style={{ marginTop: "1rem" }}>Last response:</div>
-      <div>{lastResponse || "<none>"}</div>
+      <div>Currently {listening ? "listening" : "not listening"}</div>
+      <div className="transcript-container">
+        <div>Last transcript:</div>
+        <div>{lastTranscript || "<none>"}</div>
+        <div>Last response:</div>
+        <div>{lastResponse || "<none>"}</div>
+      </div>
     </div>
   );
 }
