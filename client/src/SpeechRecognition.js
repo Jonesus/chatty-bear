@@ -24,7 +24,7 @@ function useSpeechRecognition({ onStart, onEnd, onResult }) {
     sr.lang = "en-US";
 
     return sr;
-  }, [onStart, onEnd, onResult, setListening]);
+  }, [onStart, onEnd, onResult]);
 
   return { speechRecognition, listening, setListening };
 }
