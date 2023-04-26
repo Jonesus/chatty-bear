@@ -2,11 +2,11 @@ import React, { useState, useMemo, useEffect } from "react";
 
 import{ChatGPTUnofficialProxyAPI} from 'chatgpt'
 
-// If error, renew key here https://github.com/PawanOsman/ChatGPT#use-our-hosted-api-reverse-proxy
-const KEY = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Ik1UaEVOVUpHTkVNMVFURTRNMEZCTWpkQ05UZzVNRFUxUlRVd1FVSkRNRU13UmtGRVFrRXpSZyJ9.eyJodHRwczovL2FwaS5vcGVuYWkuY29tL3Byb2ZpbGUiOnsiZW1haWwiOiJqb29uYXMucGFsb3N1b0BnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZX0sImh0dHBzOi8vYXBpLm9wZW5haS5jb20vYXV0aCI6eyJ1c2VyX2lkIjoidXNlci1GbzROQTBVbzZrVFVmdGFmVVIzb2FTVFgifSwiaXNzIjoiaHR0cHM6Ly9hdXRoMC5vcGVuYWkuY29tLyIsInN1YiI6Imdvb2dsZS1vYXV0aDJ8MTE1ODIyNDM5NjAwOTkyNjAzNTcxIiwiYXVkIjpbImh0dHBzOi8vYXBpLm9wZW5haS5jb20vdjEiLCJodHRwczovL29wZW5haS5vcGVuYWkuYXV0aDBhcHAuY29tL3VzZXJpbmZvIl0sImlhdCI6MTY4MTk3OTk3NywiZXhwIjoxNjgzMTg5NTc3LCJhenAiOiJUZEpJY2JlMTZXb1RIdE45NW55eXdoNUU0eU9vNkl0RyIsInNjb3BlIjoib3BlbmlkIHByb2ZpbGUgZW1haWwgbW9kZWwucmVhZCBtb2RlbC5yZXF1ZXN0IG9yZ2FuaXphdGlvbi5yZWFkIG9mZmxpbmVfYWNjZXNzIn0.oZR0ZHGLxhIOhbBnfBtN0Jl_vy9GXOIJE_0Y3wUcTZECwGSksqfEIFnu6BCT9-_X08leydO4PufAA-tIHId4Vgh_W5sg2bze3jOuuEMonVZqkwiLdO1FBYL2b5GPJTb63iNYPhJQyJJOaOTleFcJ7C5_5_OYgK51MqjPOJyiSZEypyU3lvkmjh8OJbLMahiteXWS9Rg0NG6r6v1cmYbMgmo2pQBXc66WNkEjqs4Gv9BsL7syc4BTBIWSuKhmxftFVpffF4wkgvdHmyR74x70hM2N7eZ8ahEGLPJJZDSVb5hLhdOO_GaiiWg0AaYNeG9qXk5rkfInNMzmIxh0ye-DgA";
-
+// get api key by logging into open ai, then from this url
+// https://chat.openai.com/api/auth/session
+// get the "accessToken" value to .env
 const api = new ChatGPTUnofficialProxyAPI({
-  accessToken: KEY,
+  accessToken: process.env.REACT_APP_OPENAI_API_KEY,
   apiReverseProxyUrl: 'https://ai.fakeopen.com/api/conversation	',
   debug: false,
 });
