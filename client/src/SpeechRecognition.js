@@ -9,7 +9,7 @@ function useSpeechRecognition({ onStart, onEnd, onResult }) {
         ? new window.webkitSpeechRecognition()
         : new window.SpeechRecognition();
 
-    sr.continuous = false;
+    sr.continuous = true;
     sr.onstart = () => {
       setListening(true);
       onStart?.();
@@ -22,6 +22,13 @@ function useSpeechRecognition({ onStart, onEnd, onResult }) {
       onResult?.(event.results[event.resultIndex][0].transcript);
     };
     sr.lang = "en-US";
+
+    // mobile chrome timeouts the recording after a while,
+    // this ensures that it stays running
+    sr.addEventListener("end", () => {
+      console.log("restarted by listener");
+      sr.start();
+    });
 
     return sr;
   }, [onStart, onEnd, onResult, setListening]);
@@ -64,12 +71,22 @@ export function SpeechRecognition() {
   return (
     <div className="speech-recognition">
       <div>
-        { !listening && 
-          <button className="record-button" onClick={() => speechRecognition.start()}>Start</button>
-        }
-        { listening && 
-          <button className={`record-button ${listening ? "recording" : ""}`} onClick={() => speechRecognition.stop()}>Stop</button>
-        }
+        {!listening && (
+          <button
+            className="record-button"
+            onClick={() => speechRecognition.start()}
+          >
+            Start
+          </button>
+        )}
+        {listening && (
+          <button
+            className={`record-button ${listening ? "recording" : ""}`}
+            onClick={() => speechRecognition.stop()}
+          >
+            Stop
+          </button>
+        )}
       </div>
       <div>Currently {listening ? "listening" : "not listening"}</div>
       <div className="transcript-container">
