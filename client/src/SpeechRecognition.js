@@ -71,7 +71,7 @@ function useSpeechRecognition({ onStart, onEnd, onResult }) {
 
     window.speechRecognition = sr;
 
-    sr.continuous = true;
+    sr.continuous = false;
     sr.onstart = () => {
       setListening(true);
       onStart?.();
@@ -127,28 +127,35 @@ async function getGptResponse(prompt) {
       randomPick(pendingResponses)
     );
     window.speechSynthesis.speak(utterance);
-  }, 5000);
+  }, 3000);
+
+  let resp = "";
 
   try {
+    console.log(conversationId, parentMessageId);
     const response = await api.sendMessage(prompt, {
       parentMessageId,
       conversationId,
       timeoutMs: 60000,
     });
 
-    clearInterval(thinkingInterval);
-    thinkingInterval = null;
-    clearTimeout(timeoutId);
+    console.log(response);
+    resp = response.text;
 
     parentMessageId = response.id;
-    console.log(response);
-    return response.text;
   } catch (e) {
-    const response =
+    resp =
       "I'm sorry. I have a lot on my mind right now. You can talk to me later.";
-    console.log(response);
-    return response;
+    console.log(resp);
+    console.log(e);
+    shouldLoop = false;
   }
+
+  clearInterval(thinkingInterval);
+  thinkingInterval = null;
+  clearTimeout(timeoutId);
+
+  return resp;
 }
 
 export function SpeechRecognition() {
@@ -197,7 +204,7 @@ export function SpeechRecognition() {
       // Using rotationRate, which essentially is velocity,
       // we check each axis (alpha, beta, gamma) whether they cross a threshold (e.g. 256).
       // Lower = more sensitive, higher = less sensitive. 256 works nice, imho.
-      const threshold = 512;
+      const threshold = 256;
       if (
         event.rotationRate.alpha > threshold ||
         event.rotationRate.beta > threshold ||
