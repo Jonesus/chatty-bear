@@ -26,6 +26,8 @@ Do not say in your answers that you're an AI language model
 
 let parentMessageId = "";
 let conversationId = "";
+let shouldLoop = true;
+let thinkingInterval = null;
 
 const initialResponses = [
   "Whee! This is so much fun!",
@@ -44,7 +46,6 @@ const initialResponses = [
 
 const pendingResponses = [
   "Let me think.",
-  "Umm, good question.",
   "I need a moment.",
   "Interesting, let me ponder.",
   "Give me a sec.",
@@ -86,14 +87,12 @@ function useSpeechRecognition({ onStart, onEnd, onResult }) {
 
     // mobile chrome timeouts the recording after a while,
     // this ensures that it stays running
-    /*
     sr.addEventListener("end", () => {
       console.log("restarted by listener");
-      if (!window.speechSynthesis.pending || !window.speechSynthesis.speaking) {
+      if (shouldLoop) {
         sr.start();
       }
     });
-    */
 
     return sr;
   }, [onStart, onEnd, onResult]);
@@ -109,24 +108,35 @@ function speak(text) {
   };
   utterance.onend = () => {
     window.speechRecognition.start();
+    shouldLoop = true;
   };
   window.speechSynthesis.speak(utterance);
 }
 
 async function getGptResponse(prompt) {
-  const intervalId = setInterval(() => {
+  shouldLoop = false;
+  thinkingInterval = setInterval(() => {
     const utterance = new SpeechSynthesisUtterance(
       randomPick(pendingResponses)
     );
     window.speechSynthesis.speak(utterance);
-  }, 15000);
+  }, 20000);
+
+  const timeoutId = setTimeout(() => {
+    const utterance = new SpeechSynthesisUtterance(
+      randomPick(pendingResponses)
+    );
+    window.speechSynthesis.speak(utterance);
+  }, 5000);
 
   const response = await api.sendMessage(prompt, {
     parentMessageId,
     conversationId,
   });
 
-  clearInterval(intervalId);
+  clearInterval(thinkingInterval);
+  thinkingInterval = null;
+  clearTimeout(timeoutId);
 
   parentMessageId = response.id;
   console.log(response);
@@ -197,6 +207,7 @@ export function SpeechRecognition() {
 
   useEffect(() => {
     if (motion) {
+      if (thinkingInterval) clearInterval(thinkingInterval);
       const text = randomPick(initialResponses);
       speak(text);
       setLastResponse(text);
@@ -205,6 +216,18 @@ export function SpeechRecognition() {
 
   return (
     <div className="speech-recognition">
+      <div>
+        <button
+          onClick={() => {
+            const utterance = new SpeechSynthesisUtterance(
+              "ready to rock and roll"
+            );
+            window.speechSynthesis.speak(utterance);
+          }}
+        >
+          initialize
+        </button>
+      </div>
       <div>
         {!listening && (
           <button
