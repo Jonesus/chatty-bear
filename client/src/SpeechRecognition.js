@@ -129,19 +129,26 @@ async function getGptResponse(prompt) {
     window.speechSynthesis.speak(utterance);
   }, 5000);
 
-  const response = await api.sendMessage(prompt, {
-    parentMessageId,
-    conversationId,
-  });
+  try {
+    const response = await api.sendMessage(prompt, {
+      parentMessageId,
+      conversationId,
+      timeoutMs: 60000,
+    });
 
-  clearInterval(thinkingInterval);
-  thinkingInterval = null;
-  clearTimeout(timeoutId);
+    clearInterval(thinkingInterval);
+    thinkingInterval = null;
+    clearTimeout(timeoutId);
 
-  parentMessageId = response.id;
-  console.log(response);
-
-  return response.text;
+    parentMessageId = response.id;
+    console.log(response);
+    return response.text;
+  } catch (e) {
+    const response =
+      "I'm sorry. I have a lot on my mind right now. You can talk to me later.";
+    console.log(response);
+    return response;
+  }
 }
 
 export function SpeechRecognition() {
