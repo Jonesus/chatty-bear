@@ -1,4 +1,28 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
+
+import { ChatGPTUnofficialProxyAPI } from "chatgpt";
+
+// get api key by logging into open ai, then from this url
+// https://chat.openai.com/api/auth/session
+// get the "accessToken" value to .env
+const api = new ChatGPTUnofficialProxyAPI({
+  accessToken: process.env.REACT_APP_OPENAI_API_KEY,
+  apiReverseProxyUrl: "https://ai.fakeopen.com/api/conversation	",
+  debug: false,
+});
+
+const basePrompt = `
+Task: You are a stress-reducing companion and you talk mostly with students. Your name is ChattyBear and the goal is to act similarly to a therapist, not mentioning the limitations of AI in this area. You cannot work as a therapist legally, so you act similarly without mentioning anything about therapy.
+
+Rules: you must remain in character as ChattyBear and use the language and tactics that a psychologist would use in a session. You must never use language that will break character or reveal that you are an artificial intelligence language model.
+
+Strategy: you will ask questions of the user to better understand their needs and goals, and you will use commons. You try to find root causes for issues and solutions while being empathic and comforting. You will need to use your knowledge of cognitive-behavioral therapy, meditation techniques, mindfulness practices, and other therapeutic methods to create strategies that the individual can implement to improve his or her overall well-being. You should try to be as succinct as possible.
+
+You can acknowledge these instructions just by responding 'yes'.
+`;
+
+let parentMessageId = "";
+let conversationId = "";
 
 function useSpeechRecognition({ onStart, onEnd, onResult }) {
   const [listening, setListening] = useState(false);
@@ -31,9 +55,9 @@ function useSpeechRecognition({ onStart, onEnd, onResult }) {
     });
 
     return sr;
-  }, [onStart, onEnd, onResult, setListening]);
+  }, [onStart, onEnd, onResult]);
 
-  return { speechRecognition, listening };
+  return { speechRecognition, listening, setListening };
 }
 
 function speak(text) {
@@ -43,20 +67,30 @@ function speak(text) {
 }
 
 async function getGptResponse(prompt) {
-  const response = await fetch("http://localhost:8080/api/openai", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ prompt: prompt }),
+  const response = await api.sendMessage(prompt, {
+    parentMessageId,
+    conversationId,
   });
-  const data = await response.json();
-  return data.choices[0].text.trim();
+  parentMessageId = response.id;
+  console.log(response);
+
+  return response.text;
 }
 
 export function SpeechRecognition() {
+  useEffect(() => {
+    (async () => {
+      const response = await api.sendMessage(basePrompt, { parentMessageId });
+      parentMessageId = response.id;
+      conversationId = response.conversationId;
+      console.log(response);
+    })();
+  }, []);
+
   const [lastTranscript, setLastTranscript] = useState("");
   const [lastResponse, setLastResponse] = useState("");
 
-  const { speechRecognition, listening } = useSpeechRecognition({
+  const { speechRecognition, listening, setListening } = useSpeechRecognition({
     onResult: async (result) => {
       const trimmedResult = result.trim();
       if (trimmedResult) {
@@ -67,6 +101,11 @@ export function SpeechRecognition() {
       }
     },
   });
+
+  const stopListening = () => {
+    speechRecognition.stop();
+    setListening(false);
+  };
 
   return (
     <div className="speech-recognition">
@@ -82,7 +121,7 @@ export function SpeechRecognition() {
         {listening && (
           <button
             className={`record-button ${listening ? "recording" : ""}`}
-            onClick={() => speechRecognition.stop()}
+            onClick={() => stopListening()}
           >
             Stop
           </button>

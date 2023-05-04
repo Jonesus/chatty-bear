@@ -2,6 +2,12 @@ const express = require("express");
 var request = require("request");
 router = express.Router();
 
+const { ChatGPTUnofficialProxyAPI } = require("chatgpt");
+
+const api = new ChatGPTUnofficialProxyAPI({
+  accessToken: process.env.OPENAI_API_KEY,
+});
+
 router.post("/", async (req, res) => {
   try {
     console.log(req.body.prompt);
@@ -24,15 +30,11 @@ router.post("/", async (req, res) => {
       }),
     };
 
-    request(openaiOptions, function (error, openaiResponse) {
-      console.log(error, openaiResponse.body);
-      if (error) {
-        res.status(400).send(openaiResponse.body);
-      } else {
-        res.status(200).send(openaiResponse.body);
-      }
-      return;
-    });
+    const response = await api.sendMessage(req.body.prompt);
+    console.log(response)
+
+    res.status(200).send(response.text);
+    return;
   } catch (error) {
     return res.status(500).send("Error! Something broke :S");
   }
